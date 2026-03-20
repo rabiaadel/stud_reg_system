@@ -9,6 +9,8 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets: []
+  # Alert rules evaluation
+  alert_relabel_configs: []
 
 rule_files:
   - '/etc/prometheus/rules.yml'
@@ -18,33 +20,35 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    scrape_interval: 30s
+    scrape_timeout: 10s
 
-  # Backend API metrics (if Prometheus client is added)
+  # Backend API metrics - PRIMARY (prom-client)
   - job_name: 'backend-api'
+    honor_timestamps: true
+    metrics_path: '/metrics'
+    scheme: http
     static_configs:
       - targets: ['backend:3000']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
+        labels:
+          service: 'api-server'
+          environment: 'docker'
+    scrape_interval: 15s
     scrape_timeout: 5s
-
-  # PostgreSQL exporter (optional)
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres:5432']
     relabel_configs:
       - source_labels: [__address__]
         target_label: instance
-      - target_label: __scheme__
-        replacement: 'postgres'
+      - source_labels: [__scheme__]
+        target_label: scheme
 
-  # Docker containers (via cAdvisor)
-  - job_name: 'cadvisor'
+  # Frontend health check
+  - job_name: 'frontend'
+    metrics_path: '/'
+    scheme: http
     static_configs:
-      - targets: ['cadvisor:8080']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
-  # Node exporter for host metrics (optional)
-  - job_name: 'node'
-    static_configs:
-      - targets: ['localhost:9100']
+      - targets: ['frontend:8080']
+        labels:
+          service: 'web-ui'
+          environment: 'docker'
+    scrape_interval: 30s
+    scrape_timeout: 5s

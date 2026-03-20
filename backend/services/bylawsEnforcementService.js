@@ -1,6 +1,16 @@
-// Bylaws Enforcement Service - Implements Faculty of Computers and Informatics Rules
-const { pool } = require('../config/database');
-const logger = require('../config/logger').default || console;
+/**
+ * Bylaws Enforcement Service
+ * Core service that enforces Tanta University bylaws throughout the registration system
+ * Source of Truth: db-extracted/bylaws_complete.json
+ * 
+ * Key Articles Enforced:
+ * - Article 4: Credit hour system (132 total, 2.0 GPA minimum, 3-4 year duration)
+ * - Article 20: Course distribution and progression requirements
+ * - Articles 7-8: Graduation requirements and academic standing
+ */
+
+const db = require('../config/database');
+const logger = require('../utils/logger') || console;
 
 class BylawsEnforcementService {
   /**

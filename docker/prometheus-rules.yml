@@ -1,0 +1,158 @@
+groups:
+  - name: backend-api-alerts
+    interval: 30s
+    rules:
+      # HIGH PRIORITY ALERTS
+      - alert: BackendApiDown
+        expr: up{job="backend-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "Backend API is down"
+          description: "Backend API at {{ $labels.instance }} has been unreachable for 1 minute."
+          impact: "Students cannot register for courses or view grades"
+
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{job="backend-api",status=~"5.."}[5m])) by (job) /
+           sum(rate(http_requests_total{job="backend-api"}[5m])) by (job)) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High error rate detected (>5%)"
+          description: "Error rate is {{ $value | humanizePercentage }} over last 5 minutes"
+          impact: "API is experiencing errors affecting user operations"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="backend-api"}[5m])) by (le, job)) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High API latency (p95 > 2s)"
+          description: "95th percentile latency: {{ $value | humanizeDuration }}"
+          impact: "Slow API responses are affecting user experience"
+
+      - alert: HighMemoryUsage
+        expr: |
+          container_memory_usage_bytes{name="stud-reg-backend"} / container_spec_memory_limit_bytes{name="stud-reg-backend"} > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High memory usage (>85%)"
+          description: "Memory usage: {{ $value | humanizePercentage }}"
+          impact: "May lead to OOM killer terminating the service"
+
+      - alert: HighCpuUsage
+        expr: |
+          sum(rate(container_cpu_usage_seconds_total{name="stud-reg-backend"}[5m])) by (name) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High CPU usage (>80%)"
+          description: "CPU usage: {{ $value | humanizePercentage }}"
+          impact: "Service may become unresponsive"
+
+  - name: database-alerts
+    interval: 30s
+    rules:
+      - alert: DatabaseDown
+        expr: up{job="backend-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database connection failed"
+          description: "Backend cannot connect to PostgreSQL"
+          impact: "Critical - all database operations will fail"
+
+      - alert: SlowQueries
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="backend-api",path=~"/api/.*"}[5m])) by (le, path)) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Endpoint {{ $labels.path }} query time p95: {{ $value | humanizeDuration }}"
+          impact: "Users experience slow course loading and registration"
+
+  - name: frontend-alerts
+    interval: 30s
+    rules:
+      - alert: FrontendDown
+        expr: up{job="frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: frontend
+        annotations:
+          summary: "Frontend service is down"
+          description: "Frontend at {{ $labels.instance }} is unreachable"
+          impact: "Students cannot access the registration portal"
+
+  - name: system-alerts
+    interval: 30s
+    rules:
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: prometheus
+        annotations:
+          summary: "Prometheus monitoring is down"
+          description: "Prometheus instance at {{ $labels.instance }} is unreachable"
+          impact: "Monitoring data will not be collected"
+
+  - name: business-logic-alerts
+    interval: 60s
+    rules:
+      - alert: LowRegistrationApprovals
+        expr: |
+          rate(account_requests_approved_total[1h]) < 0.01
+        for: 30m
+        labels:
+          severity: info
+          service: backend
+        annotations:
+          summary: "Low registration approvals"
+          description: "Admin approval rate is below threshold"
+          impact: "Pending student registrations not being processed"
+
+      - alert: HighFailedRegistrations
+        expr: |
+          (sum(rate(registration_events_total{status="failed"}[1h])) / 
+           sum(rate(registration_events_total[1h]))) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High registration failure rate"
+          description: "Failure rate: {{ $value | humanizePercentage }} over last hour"
+          impact: "Students unable to register for courses"
+
+      - alert: PrerequisiteViolations
+        expr: |
+          increase(prerequisite_violations_total[1h]) > 5
+        for: 15m
+        labels:
+          severity: info
+          service: backend
+        annotations:
+          summary: "Multiple prerequisite violations detected"
+          description: "{{ $value }} violations in the last hour"
+          impact: "Students attempting to register without required prerequisites"

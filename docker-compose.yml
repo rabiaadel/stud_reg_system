@@ -115,6 +115,7 @@ services:
     container_name: stud-reg-prometheus
     volumes:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus-rules.yml:/etc/prometheus/rules.yml
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"

@@ -21,6 +21,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store';
+import { APP_NAME_AR, APP_BRAND } from '../config/appMeta';
 
 const { Header, Sider, Content, Footer } = Layout;
 
@@ -37,19 +38,25 @@ export const LayoutComponent = ({ children }) => {
     navigate('/login');
   };
 
-  const userMenu = (
-    <Menu>
-      <Menu.Item key="profile" icon={<UserOutlined />}>
-        <Link to="/profile">Profile</Link>
-      </Menu.Item>
-      <Menu.Divider />
-      <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
-        Logout
-      </Menu.Item>
-    </Menu>
-  );
+  const userMenu = {
+    items: [
+      {
+        key: 'profile',
+        icon: <UserOutlined />,
+        label: <Link to="/profile">Profile</Link>,
+      },
+      {
+        type: 'divider',
+      },
+      {
+        key: 'logout',
+        icon: <LogoutOutlined className="text-red-500" />,
+        label: <span className="text-red-500 font-medium">Logout</span>,
+        onClick: handleLogout,
+      },
+    ],
+  };
 
-  // Student Menu Items
   const studentMenuItems = [
     {
       key: '/dashboard',
@@ -88,7 +95,6 @@ export const LayoutComponent = ({ children }) => {
     },
   ];
 
-  // Admin Menu Items
   const adminMenuItems = [
     {
       key: '/admin',
@@ -112,85 +118,114 @@ export const LayoutComponent = ({ children }) => {
     },
   ];
 
-  const menuItems = user?.role === 'admin' ? adminMenuItems : studentMenuItems;
+  const doctorMenuItems = [
+    {
+      key: '/doctor',
+      icon: <DashboardOutlined />,
+      label: <Link to="/doctor">Dashboard</Link>,
+    },
+  ];
+
+  let menuItems = studentMenuItems;
+  if (user?.role === 'admin') {
+    menuItems = adminMenuItems;
+  } else if (user?.role === 'doctor') {
+    menuItems = doctorMenuItems;
+  }
 
   const selectedKey = menuItems.find((item) =>
     location.pathname.includes(item.key)
   )?.key || menuItems[0].key;
 
   return (
-    <Layout className="min-h-screen">
-      {/* Desktop Sidebar */}
+    <Layout className="min-h-screen bg-transparent">
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
-        className="hidden md:block"
+        className="hidden md:block app-sider"
+        theme="light"
+        width={250}
       >
-        <div className="flex items-center justify-center h-16 bg-primary text-white font-bold text-lg">
-          {!collapsed && 'SRS'}
+        <div className="app-sider-header">
+          <div className="brand-mark">حاسب</div>
+          {!collapsed && (
+            <div className="brand-text">
+              <span className="brand-title">{APP_NAME_AR}</span>
+              <span className="brand-subtitle">Faculty of Computers & Informatics</span>
+            </div>
+          )}
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[selectedKey]}
           items={menuItems}
+          className="app-menu"
         />
       </Sider>
 
-      {/* Mobile Drawer */}
       <Drawer
-        title="Menu"
+        title={
+          <div className="flex flex-col">
+            <span className="font-display font-bold text-xl text-primary">{APP_NAME_AR}</span>
+            <span className="text-xs text-gray-500 leading-tight">{APP_BRAND}</span>
+          </div>
+        }
         placement="left"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        children={
-          <Menu
-            mode="vertical"
-            selectedKeys={[selectedKey]}
-            items={menuItems}
-            onClick={() => setDrawerVisible(false)}
-          />
-        }
-      />
+        bodyStyle={{ padding: 0 }}
+        className="app-drawer"
+      >
+        <Menu
+          mode="vertical"
+          selectedKeys={[selectedKey]}
+          items={menuItems}
+          onClick={() => setDrawerVisible(false)}
+          className="app-menu-mobile"
+        />
+      </Drawer>
 
-      {/* Main Layout */}
-      <Layout>
-        {/* Header */}
-        <Header className="bg-white shadow-md flex items-center justify-between">
+      <Layout className="bg-transparent">
+        <Header className="app-header">
           <div className="flex items-center gap-4">
             <Button
               type="text"
               icon={drawerVisible ? <CloseOutlined /> : <MenuOutlined />}
               onClick={() => setDrawerVisible(!drawerVisible)}
-              className="md:hidden"
+              className="md:hidden app-icon-button"
             />
-            <h1 className="text-lg font-semibold hidden md:block">
-              Student Registration System
-            </h1>
+            <div className="hidden md:flex flex-col">
+              <span className="text-sm text-gray-500">Welcome back</span>
+              <span className="text-xl font-display font-semibold text-gray-900">
+                {user?.name?.split(' ')[0] || 'User'}
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">{user?.name || 'User'}</span>
-            <Dropdown menu={{ items: userMenu }} trigger={['click']}>
+            <div className="hidden sm:flex flex-col items-end mr-2">
+              <span className="text-sm font-semibold text-gray-800">{user?.name || 'Authorized User'}</span>
+              <span className="text-xs text-gray-500 capitalize">{user?.role || 'Guest'}</span>
+            </div>
+            <Dropdown menu={userMenu} trigger={['click']} placement="bottomRight">
               <Avatar
-                size={40}
+                size={44}
                 icon={<UserOutlined />}
-                className="bg-blue-500 cursor-pointer"
+                className="app-avatar"
               />
             </Dropdown>
           </div>
         </Header>
 
-        {/* Content */}
-        <Content className="p-6 bg-gray-50 min-h-screen">
+        <Content className="p-4 md:p-8 app-content">
           {children}
         </Content>
 
-        {/* Footer */}
-        <Footer className="text-center bg-white border-t">
-          <p className="text-gray-600">
-            © 2024 University Student Registration System. All rights reserved.
+        <Footer className="app-footer">
+          <p>
+            © {new Date().getFullYear()} {APP_NAME_AR}
           </p>
         </Footer>
       </Layout>

@@ -5,6 +5,7 @@ import { useAuthStore } from './store';
 
 // Pages
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { RegistrationPage } from './pages/RegistrationPage';
@@ -13,23 +14,42 @@ import { AcademicStandingPage } from './pages/AcademicStandingPage';
 import { GraduationPage } from './pages/GraduationPage';
 import { ProgressPage } from './pages/ProgressPage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { DoctorDashboard } from './pages/DoctorDashboard';
 
 // Layout
 import { LayoutComponent } from './components/Layout';
 
 // Protected Route Component
-const ProtectedRoute = ({ children, requiredRole = null }) => {
+const ProtectedRoute = ({ children, allowedRoles = null }) => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/dashboard" />;
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    return <Navigate to="/" />;
   }
 
   return <LayoutComponent>{children}</LayoutComponent>;
+};
+
+const HomeRedirect = () => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/admin" />;
+  }
+
+  if (user?.role === 'doctor') {
+    return <Navigate to="/doctor" />;
+  }
+
+  return <Navigate to="/dashboard" />;
 };
 
 export default function App() {
@@ -39,12 +59,13 @@ export default function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
         {/* Protected Student Routes */}
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <DashboardPage />
             </ProtectedRoute>
           }
@@ -52,7 +73,7 @@ export default function App() {
         <Route
           path="/courses"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <CoursesPage />
             </ProtectedRoute>
           }
@@ -60,7 +81,7 @@ export default function App() {
         <Route
           path="/registration"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <RegistrationPage />
             </ProtectedRoute>
           }
@@ -68,7 +89,7 @@ export default function App() {
         <Route
           path="/grades"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <GradesPage />
             </ProtectedRoute>
           }
@@ -76,7 +97,7 @@ export default function App() {
         <Route
           path="/academic-standing"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <AcademicStandingPage />
             </ProtectedRoute>
           }
@@ -84,7 +105,7 @@ export default function App() {
         <Route
           path="/graduation"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <GraduationPage />
             </ProtectedRoute>
           }
@@ -92,7 +113,7 @@ export default function App() {
         <Route
           path="/progress"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <ProgressPage />
             </ProtectedRoute>
           }
@@ -102,7 +123,7 @@ export default function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
             </ProtectedRoute>
           }
@@ -110,7 +131,7 @@ export default function App() {
         <Route
           path="/admin/rules"
           element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute allowedRoles={['admin']}>
               <div>Admin Rules Page - Coming Soon</div>
             </ProtectedRoute>
           }
@@ -118,7 +139,7 @@ export default function App() {
         <Route
           path="/admin/students"
           element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute allowedRoles={['admin']}>
               <div>Admin Students Page - Coming Soon</div>
             </ProtectedRoute>
           }
@@ -126,15 +147,25 @@ export default function App() {
         <Route
           path="/admin/audit-logs"
           element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute allowedRoles={['admin']}>
               <div>Admin Audit Logs Page - Coming Soon</div>
             </ProtectedRoute>
           }
         />
 
+        {/* Protected Doctor Routes */}
+        <Route
+          path="/doctor"
+          element={
+            <ProtectedRoute allowedRoles={['doctor']}>
+              <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Fallback */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        <Route path="/" element={<HomeRedirect />} />
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>
   );

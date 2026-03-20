@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { authService } from '../services/api';
 
 export const useAuthStore = create((set) => ({
-  user: null,
+  user: authService.getCurrentUser(),
   isLoading: false,
   error: null,
   isAuthenticated: authService.isAuthenticated(),
@@ -17,7 +17,7 @@ export const useAuthStore = create((set) => ({
 
       authService.setToken(token);
       set({ user, isAuthenticated: true, isLoading: false });
-      return response.data;
+      return { token, user };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Login failed';
       set({ error: errorMessage, isLoading: false });
@@ -42,6 +42,7 @@ export const useStudentStore = create((set) => ({
 
   setStudent: (student) => set({ student }),
   setGrades: (grades) => set({ grades }),
+  setStudentGrades: (grades) => set({ grades }),
   setAcademicStanding: (standing) => set({ academicStanding: standing }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
@@ -74,4 +75,4 @@ export const useSemesterStore = create((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
-});
+}));

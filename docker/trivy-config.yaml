@@ -1,0 +1,23 @@
+# Trivy Scanning Configuration
+severity: MEDIUM,HIGH,CRITICAL
+exit-code: 1
+no-progress: false
+format: json
+output: /reports/trivy-report.json
+skip-update: false
+
+# Scanning options
+scanners: config,secret,sbom
+slow: false
+vuln-type: os,library
+
+# Security report options
+list-all-pkgs: true
+show-suppressed: false
+
+# Exit code modes
+# 0 - vulnerability not found
+# 1 - vulneability found
+exit-status:
+  vulnerabilities: 1
+  policy-violations: 0

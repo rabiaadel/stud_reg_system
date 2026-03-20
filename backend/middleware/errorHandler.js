@@ -1,4 +1,4 @@
-const winston = require('winston');
+const { logger } = require('../config/logger');
 
 // Error handler middleware
 const errorHandler = (err, req, res, next) => {
@@ -6,7 +6,7 @@ const errorHandler = (err, req, res, next) => {
   error.message = err.message;
 
   // Log error
-  winston.error(err.message, {
+  (req.logger || logger).error(err.message, {
     stack: err.stack,
     url: req.url,
     method: req.method,

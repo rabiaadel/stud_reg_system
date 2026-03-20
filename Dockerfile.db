@@ -1,0 +1,30 @@
+# PostgreSQL with custom initialization
+FROM postgres:16-alpine
+
+LABEL maintainer="DevOps Team"
+LABEL version="1.0"
+LABEL description="Student Registration System - PostgreSQL Database"
+
+# Set environment variables
+ENV POSTGRES_USER=postgres \
+    POSTGRES_PASSWORD=postgres \
+    POSTGRES_DB=student_registration_system \
+    PGDATA=/var/lib/postgresql/data/pgdata
+
+# Install required tools
+RUN apk add --no-cache \
+    postgresql-client \
+    curl
+
+# Copy initialization scripts
+COPY database/schema.sql /docker-entrypoint-initdb.d/01-schema.sql
+
+# Add health check
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
+    CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Data directory
+VOLUME ["/var/lib/postgresql/data"]

@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: stud-reg-system
+  namespace: default
+
+bases:
+  - namespaces
+  - db
+  - backend
+  - frontend
+  - monitoring
+
+commonLabels:
+  app: student-registration-system
+  managed-by: kustomize
+  environment: production
+
+commonAnnotations:
+  version: "1.0"
+  managed-by: "kustomize"
+  timestamp: "2024-01-01"
+
+namePrefix: stud-reg-
+
+patchesStrategicMerge:
+  - deployment-patches.yaml
+
+replicas:
+- name: backend
+  count: 3
+- name: frontend
+  count: 2
+
+generatorOptions:
+  disableNameSuffixHash: false
+  annotationSelector: "kustomize.config.k8s.io/needs-hash=true"

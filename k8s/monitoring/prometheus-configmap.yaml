@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        monitor: 'stud-reg-system'
+        environment: 'kubernetes'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: []
+
+    rule_files:
+      - '/etc/prometheus/rules/*.yml'
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'backend-api'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - stud-reg-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: backend
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+
+      - job_name: 'postgres'
+        static_configs:
+          - targets: ['postgres.stud-reg-db.svc.cluster.local:5432']
+
+  rules.yml: |
+    groups:
+      - name: stud-reg-system
+        interval: 30s
+        rules:
+          - alert: HighErrorRate
+            expr: (rate(http_requests_total{status=~"5.."}[5m]) > 0.05)
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High error rate detected"
+
+          - alert: HighMemoryUsage
+            expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes * 100) > 80
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory usage"
+
+          - alert: PodNotReady
+            expr: sum by (pod, namespace) (kube_pod_status_ready{condition="false"}) > 0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod not ready"

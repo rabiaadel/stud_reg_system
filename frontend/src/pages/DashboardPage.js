@@ -50,8 +50,8 @@ export const DashboardPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spin size="large" />
+      <div className="flex justify-center items-center h-96">
+        <Spin size="large" className="text-primary" />
       </div>
     );
   }
@@ -62,12 +62,20 @@ export const DashboardPage = () => {
     ? 'error'
     : 'success';
 
+  const fullName = studentProfile
+    ? `${studentProfile.first_name_en || ''} ${studentProfile.last_name_en || ''}`.trim()
+    : '';
+
+  const enrollmentStatus = studentProfile
+    ? (studentProfile.is_active ? (studentProfile.is_dismissed ? 'dismissed' : 'active') : 'inactive')
+    : 'inactive';
+
   const standingColor =
     standingStatus === 'success'
-      ? 'green'
+      ? 'text-success'
       : standingStatus === 'warning'
-      ? 'orange'
-      : 'red';
+      ? 'text-warning'
+      : 'text-error';
 
   const statusIcon =
     standingStatus === 'success'
@@ -79,195 +87,168 @@ export const DashboardPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-500 mt-2">
-          Welcome back, {studentProfile?.full_name}!
+      <div className="glass-panel p-6 mb-6">
+        <h1 className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            Student Dashboard
+        </h1>
+        <p className="text-gray-500 mt-2 font-medium">
+          Welcome back, <span className="text-gray-800 font-semibold">{fullName || 'Student'}</span>! Here's your academic overview.
         </p>
       </div>
 
       {/* Statistics Cards */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[24, 24]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Current GPA"
-              value={academicStanding?.cgpa?.toFixed(2) || 0}
-              prefix={<BookOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
+          <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden h-full group">
+             <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+             <BookOutlined className="text-4xl text-primary mb-3" />
+             <div className="text-3xl font-bold text-gray-800">{academicStanding?.cgpa?.toFixed(2) || 0}</div>
+             <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mt-1">Current GPA</div>
+          </div>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Credits Earned"
-              value={academicStanding?.total_credits_earned || 0}
-              prefix={<TrophyOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
+          <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden h-full group">
+             <div className="absolute -right-4 -top-4 w-24 h-24 bg-success/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+             <TrophyOutlined className="text-4xl text-success mb-3" />
+             <div className="text-3xl font-bold text-gray-800">{academicStanding?.total_credits_earned || studentProfile?.total_credits_passed || 0}</div>
+             <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mt-1">Credits Earned</div>
+          </div>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Registered Courses"
-              value={grades?.length || 0}
-              prefix={<BookOutlined />}
-              valueStyle={{ color: '#faad14' }}
-            />
-          </Card>
+          <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden h-full group">
+             <div className="absolute -right-4 -top-4 w-24 h-24 bg-warning/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+             <BookOutlined className="text-4xl text-warning mb-3" />
+             <div className="text-3xl font-bold text-gray-800">{grades?.length || 0}</div>
+             <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mt-1">Registered Courses</div>
+          </div>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Academic Standing"
-              value={
-                academicStanding?.is_dismissed
-                  ? 'Dismissed'
-                  : academicStanding?.warning_issued
-                  ? 'Warning'
-                  : 'Good'
-              }
-              prefix={React.createElement(statusIcon)}
-              valueStyle={{ color: standingColor }}
-            />
-          </Card>
+          <div className="glass-card p-6 flex flex-col items-center justify-center relative overflow-hidden h-full group">
+             <div className={`absolute -right-4 -top-4 w-24 h-24 ${standingStatus === 'success' ? 'bg-success/10' : 'bg-error/10'} rounded-full group-hover:scale-150 transition-transform duration-500`}></div>
+             {React.createElement(statusIcon, { className: `text-4xl ${standingColor} mb-3` })}
+             <div className="text-xl font-bold text-gray-800 text-center mt-2">
+                 {academicStanding?.is_dismissed ? 'Dismissed' : academicStanding?.warning_issued ? 'Warning' : 'Good Standing'}
+             </div>
+             <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mt-1">Academic Status</div>
+          </div>
         </Col>
       </Row>
 
-      {/* Profile Information */}
-      <Card title="Student Information" loading={loading}>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12}>
-            <p className="text-gray-600 text-sm">Student ID</p>
-            <p className="text-lg font-semibold">{studentProfile?.student_id}</p>
-          </Col>
-          <Col xs={24} sm={12}>
-            <p className="text-gray-600 text-sm">Email</p>
-            <p className="text-lg font-semibold">{studentProfile?.email}</p>
-          </Col>
-          <Col xs={24} sm={12}>
-            <p className="text-gray-600 text-sm">Department</p>
-            <p className="text-lg font-semibold">
-              {studentProfile?.department}
-            </p>
-          </Col>
-          <Col xs={24} sm={12}>
-            <p className="text-gray-600 text-sm">Specialization</p>
-            <p className="text-lg font-semibold">
-              {studentProfile?.specialization}
-            </p>
-          </Col>
-          <Col xs={24} sm={12}>
-            <p className="text-gray-600 text-sm">Academic Level</p>
-            <p className="text-lg font-semibold">
-              {studentProfile?.academic_level}
-            </p>
-          </Col>
-          <Col xs={24} sm={12}>
-            <p className="text-gray-600 text-sm">Enrollment Status</p>
-            <Tag
-              color={
-                studentProfile?.enrollment_status === 'active'
-                  ? 'green'
-                  : 'red'
-              }
-            >
-              {studentProfile?.enrollment_status}
-            </Tag>
-          </Col>
-        </Row>
-      </Card>
+      {/* Profile Information & Recent Grades Row */}
+      <Row gutter={[24, 24]} className="mt-2">
+        <Col xs={24} lg={10}>
+          <div className="glass-panel p-6 h-full">
+             <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Student Information</h2>
+             <div className="space-y-4">
+                 <div className="flex justify-between items-center bg-gray-50/50 p-3 rounded-lg">
+                    <span className="text-gray-500 font-medium">Student ID</span>
+                    <span className="font-semibold text-gray-800">{studentProfile?.student_id}</span>
+                 </div>
+                 <div className="flex justify-between items-center bg-gray-50/50 p-3 rounded-lg">
+                    <span className="text-gray-500 font-medium">Department</span>
+                    <span className="font-semibold text-gray-800">{studentProfile?.department_name || 'N/A'}</span>
+                 </div>
+                 <div className="flex justify-between items-center bg-gray-50/50 p-3 rounded-lg">
+                    <span className="text-gray-500 font-medium">Specialization</span>
+                    <span className="font-semibold text-gray-800">{studentProfile?.specialization_name || 'N/A'}</span>
+                 </div>
+                 <div className="flex justify-between items-center bg-gray-50/50 p-3 rounded-lg">
+                    <span className="text-gray-500 font-medium">Academic Level</span>
+                    <span className="font-semibold text-primary">{studentProfile?.current_level || 'N/A'}</span>
+                 </div>
+                 <div className="flex justify-between items-center bg-gray-50/50 p-3 rounded-lg">
+                    <span className="text-gray-500 font-medium">Status</span>
+                    <span className={`font-semibold ${enrollmentStatus === 'active' ? 'text-success' : 'text-error'}`}>
+                        {enrollmentStatus.toUpperCase()}
+                    </span>
+                 </div>
+             </div>
+          </div>
+        </Col>
 
-      {/* Recent Grades */}
-      {grades && grades.length > 0 ? (
-        <Card title="Recent Grades" loading={loading}>
-          <Table
-            dataSource={grades.slice(0, 5)}
-            columns={[
-              {
-                title: 'Course Code',
-                dataIndex: 'course_code',
-                key: 'course_code',
-              },
-              {
-                title: 'Course Name',
-                dataIndex: 'course_name',
-                key: 'course_name',
-              },
-              {
-                title: 'Grade',
-                dataIndex: 'grade_letter',
-                key: 'grade_letter',
-                render: (text) => <Tag color="blue">{text}</Tag>,
-              },
-              {
-                title: 'Score',
-                dataIndex: 'final_score',
-                key: 'final_score',
-                render: (text) => `${text?.toFixed(2) || 0}%`,
-              },
-            ]}
-            pagination={false}
-            rowKey="student_grade_id"
-          />
-        </Card>
-      ) : (
-        <Card loading={loading}>
-          <Empty description="No grades available yet" />
-        </Card>
-      )}
+        {/* Recent Grades */}
+        <Col xs={24} lg={14}>
+            <div className="glass-panel p-6 h-full">
+             <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Recent Performance</h2>
+              {grades && grades.length > 0 ? (
+                  <Table
+                    dataSource={grades.slice(0, 5)}
+                    className="bg-transparent"
+                    columns={[
+                      {
+                        title: 'Course Code',
+                        dataIndex: 'course_code',
+                        key: 'course_code',
+                        render: (text) => <span className="font-semibold text-gray-700">{text}</span>
+                      },
+                      {
+                        title: 'Course Name',
+                        dataIndex: 'course_name',
+                        key: 'course_name',
+                      },
+                      {
+                        title: 'Grade',
+                        dataIndex: 'grade_letter',
+                        key: 'grade_letter',
+                        render: (text) => <Tag color={text?.includes('A') ? 'green' : text?.includes('B') ? 'blue' : 'orange'} className="font-bold">{text}</Tag>,
+                      },
+                      {
+                        title: 'Score',
+                        dataIndex: 'final_score',
+                        key: 'final_score',
+                        render: (text) => <span className="font-medium">{text?.toFixed(2) || 0}%</span>,
+                      },
+                    ]}
+                    pagination={false}
+                    rowKey="student_grade_id"
+                  />
+              ) : (
+                <div className="flex flex-col justify-center items-center h-48">
+                    <Empty description={<span className="text-gray-400">No grades available yet</span>} />
+                </div>
+              )}
+            </div>
+        </Col>
+      </Row>
 
       {/* Quick Actions */}
-      <Card title="Quick Actions">
+      <div className="glass-panel p-6 mt-6">
+        <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2">Quick Actions</h2>
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={6}>
-            <a href="/registration">
-              <Card
-                hoverable
-                className="text-center h-full flex flex-col justify-center items-center"
-              >
-                <BookOutlined className="text-3xl text-blue-500 mb-2" />
-                <p className="font-semibold">Register Courses</p>
-              </Card>
+            <a href="/registration" className="block h-full cursor-pointer hover:-translate-y-1 transition-transform">
+              <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 flex flex-col items-center justify-center text-center h-full">
+                <BookOutlined className="text-3xl text-primary mb-2" />
+                <p className="font-semibold text-primary-dark">Register Courses</p>
+              </div>
             </a>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <a href="/courses">
-              <Card
-                hoverable
-                className="text-center h-full flex flex-col justify-center items-center"
-              >
+            <a href="/courses" className="block h-full cursor-pointer hover:-translate-y-1 transition-transform">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4 flex flex-col items-center justify-center text-center h-full">
                 <TeamOutlined className="text-3xl text-green-500 mb-2" />
-                <p className="font-semibold">View Courses</p>
-              </Card>
+                <p className="font-semibold text-green-800">View Catalog</p>
+              </div>
             </a>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <a href="/grades">
-              <Card
-                hoverable
-                className="text-center h-full flex flex-col justify-center items-center"
-              >
-                <TrophyOutlined className="text-3xl text-yellow-500 mb-2" />
-                <p className="font-semibold">View Grades</p>
-              </Card>
+            <a href="/grades" className="block h-full cursor-pointer hover:-translate-y-1 transition-transform">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-4 flex flex-col items-center justify-center text-center h-full">
+                <TrophyOutlined className="text-3xl text-orange-500 mb-2" />
+                <p className="font-semibold text-orange-800">Transcript</p>
+              </div>
             </a>
           </Col>
           <Col xs={24} sm={12} lg={6}>
-            <a href="/academic-standing">
-              <Card
-                hoverable
-                className="text-center h-full flex flex-col justify-center items-center"
-              >
-                <CheckCircleOutlined className="text-3xl text-purple-500 mb-2" />
-                <p className="font-semibold">Academic Status</p>
-              </Card>
+            <a href="/academic-standing" className="block h-full cursor-pointer hover:-translate-y-1 transition-transform">
+              <div className="bg-gradient-to-br from-secondary/10 to-secondary/20 border border-secondary/20 rounded-xl p-4 flex flex-col items-center justify-center text-center h-full">
+                <CheckCircleOutlined className="text-3xl text-secondary mb-2" />
+                <p className="font-semibold text-secondary-dark">Standing</p>
+              </div>
             </a>
           </Col>
         </Row>
-      </Card>
+      </div>
     </div>
   );
 };

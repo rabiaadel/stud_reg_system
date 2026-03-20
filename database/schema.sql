@@ -165,11 +165,11 @@ CREATE TABLE courses (
     name_en VARCHAR(255) NOT NULL,
     name_ar VARCHAR(255),
     description TEXT,
-    credit_hours INTEGER NOT NULL,
+    credit_hours INTEGER NOT NULL CHECK (credit_hours > 0),
     level INTEGER,
     category_id INTEGER,
     is_mandatory BOOLEAN DEFAULT TRUE,
-    min_passing_grade DECIMAL(3,2) DEFAULT 1.0,
+    min_passing_grade DECIMAL(3,2) DEFAULT 1.0 CHECK (min_passing_grade >= 0),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -248,7 +248,6 @@ CREATE TABLE student_registrations (
     student_id INTEGER NOT NULL,
     semester_id INTEGER NOT NULL,
     course_id INTEGER NOT NULL,
-    grade_id INTEGER,
     status VARCHAR(20) DEFAULT 'Registered',
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     withdrawal_date TIMESTAMP,
@@ -257,8 +256,7 @@ CREATE TABLE student_registrations (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (semester_id) REFERENCES semesters(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id),
-    FOREIGN KEY (grade_id) REFERENCES student_grades(id)
+    FOREIGN KEY (course_id) REFERENCES courses(id)
 );
 CREATE UNIQUE INDEX idx_student_registrations_unique ON student_registrations(student_id, semester_id, course_id);
 CREATE INDEX idx_student_registrations_student ON student_registrations(student_id);
@@ -271,12 +269,12 @@ CREATE TABLE student_grades (
     student_id INTEGER NOT NULL,
     course_id INTEGER NOT NULL,
     semester_id INTEGER NOT NULL,
-    coursework_score DECIMAL(5,2),
-    midterm_score DECIMAL(5,2),
-    final_exam_score DECIMAL(5,2),
-    total_score DECIMAL(5,2),
+    coursework_score DECIMAL(5,2) CHECK (coursework_score IS NULL OR (coursework_score >= 0 AND coursework_score <= 100)),
+    midterm_score DECIMAL(5,2) CHECK (midterm_score IS NULL OR (midterm_score >= 0 AND midterm_score <= 100)),
+    final_exam_score DECIMAL(5,2) CHECK (final_exam_score IS NULL OR (final_exam_score >= 0 AND final_exam_score <= 100)),
+    total_score DECIMAL(5,2) CHECK (total_score IS NULL OR (total_score >= 0 AND total_score <= 100)),
     grade_letter VARCHAR(3),
-    grade_points DECIMAL(3,2),
+    grade_points DECIMAL(3,2) CHECK (grade_points IS NULL OR (grade_points >= 0 AND grade_points <= 4.0)),
     is_first_attempt BOOLEAN DEFAULT TRUE,
     is_improvement_attempt BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -356,7 +354,7 @@ CREATE TABLE attendance_records (
     semester_id INTEGER NOT NULL,
     total_sessions INTEGER,
     attended_sessions INTEGER,
-    attendance_percentage DECIMAL(5,2),
+    attendance_percentage DECIMAL(5,2) CHECK (attendance_percentage IS NULL OR (attendance_percentage >= 0 AND attendance_percentage <= 100)),
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES courses(id),
@@ -417,7 +415,9 @@ CREATE TABLE course_schedules (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (course_id) REFERENCES courses(id),
     FOREIGN KEY (semester_id) REFERENCES semesters(id)
+    ,CHECK (start_time IS NULL OR end_time IS NULL OR start_time < end_time)
 );
+CREATE UNIQUE INDEX idx_course_schedules_unique ON course_schedules(course_id, semester_id, section);
 
 -- Notifications Table
 CREATE TABLE notifications (

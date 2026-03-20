@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: stud-reg-system
+data:
+  REACT_APP_ENV: production

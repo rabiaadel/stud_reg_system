@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: stud-reg-db
+data:
+  01-schema.sql: |
+    -- Database initialization script
+    -- This will be executed on first run
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    -- Schema creation will be handled by application or init script
+    -- The actual schema.sql should be added in the ConfigMap

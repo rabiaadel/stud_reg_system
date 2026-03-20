@@ -31,7 +31,7 @@ router.post('/', [
   body('coursework_score').optional().isDecimal().withMessage('Invalid coursework score'),
   body('midterm_score').optional().isDecimal().withMessage('Invalid midterm score'),
   body('final_exam_score').isDecimal().withMessage('Final exam score required'),
-], handleValidationErrors, authenticate, authorize(['admin', 'instructor']), gradeController.postGrade);
+], handleValidationErrors, authenticate, authorize(['admin', 'doctor']), gradeController.postGrade);
 
 // Update grade (Admin only)
 router.put('/:gradeId', [
@@ -39,6 +39,6 @@ router.put('/:gradeId', [
   body('coursework_score').optional().isDecimal().withMessage('Invalid coursework score'),
   body('midterm_score').optional().isDecimal().withMessage('Invalid midterm score'),
   body('final_exam_score').optional().isDecimal().withMessage('Invalid final exam score'),
-], handleValidationErrors, authenticate, authorize(['admin', 'instructor']), gradeController.updateGrade);
+], handleValidationErrors, authenticate, authorize(['admin', 'doctor']), gradeController.updateGrade);
 
 module.exports = router;

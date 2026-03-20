@@ -1,0 +1,534 @@
+/* Formal Layout CSS - Faculty of Computers and Informatics */
+
+.formal-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* ============================================================ */
+/* HEADER STYLING */
+/* ============================================================ */
+.formal-header {
+  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  height: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.header-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.logo-text {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.logo-text:hover {
+  transform: scale(1.02);
+}
+
+.logo-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: white;
+  padding: 4px;
+}
+
+.logo-text-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-main-en {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.logo-main-ar {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f0f2f5;
+  margin: 2px 0 0 0;
+  line-height: 1.2;
+  font-family: 'Arial', 'Tahoma', sans-serif;
+}
+
+.logo-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.header-icon-btn {
+  color: white !important;
+  font-size: 18px;
+  border: none !important;
+  background: transparent !important;
+  transition: all 0.3s ease;
+}
+
+.header-icon-btn:hover {
+  color: #ffd666 !important;
+  transform: scale(1.1);
+}
+
+.user-dropdown-btn {
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  background: transparent !important;
+  padding: 4px !important;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.user-dropdown-btn:hover {
+  border-color: white !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.mobile-menu-btn {
+  display: none;
+  color: white !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ============================================================ */
+/* LAYOUT WRAPPER */
+/* ============================================================ */
+.layout-wrapper {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - 80px);
+}
+
+/* ============================================================ */
+/* SIDEBAR STYLING */
+/* ============================================================ */
+.formal-sider {
+  background: #ffffff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+.formal-sider .ant-layout-sider-children {
+  background: #ffffff;
+}
+
+.formal-menu {
+  border-right: none !important;
+  background: #ffffff !important;
+}
+
+.formal-menu .ant-menu-item,
+.formal-menu .ant-menu-submenu {
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.formal-menu .ant-menu-item-selected {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+  border-right: 4px solid #1890ff;
+}
+
+.formal-menu .ant-menu-item:hover,
+.formal-menu .ant-menu-submenu:hover {
+  color: #1890ff !important;
+}
+
+/* ============================================================ */
+/* CONTENT STYLING */
+/* ============================================================ */
+.content-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+.formal-content {
+  flex: 1;
+  padding: 24px;
+  background: transparent;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ============================================================ */
+/* FOOTER STYLING */
+/* ============================================================ */
+.formal-footer {
+  background: linear-gradient(135deg, #1f1f1f 0%, #2d3436 100%);
+  color: white;
+  padding: 40px 24px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-bottom: 30px;
+}
+
+.footer-section h4 {
+  color: #1890ff;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.footer-section p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section ul li {
+  margin: 8px 0;
+}
+
+.footer-section ul li a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+  color: #1890ff;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+}
+
+.footer-bottom p {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+/* ============================================================ */
+/* RESPONSIVE DESIGN */
+/* ============================================================ */
+@media (max-width: 768px) {
+  .formal-header {
+    height: 64px;
+  }
+
+  .header-container {
+    padding: 0 12px;
+  }
+
+  .logo-text {
+    gap: 8px;
+  }
+
+  .logo-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo-main-en {
+    font-size: 14px;
+  }
+
+  .logo-main-ar {
+    font-size: 12px;
+  }
+
+  .logo-sub {
+    font-size: 10px;
+  }
+
+  .mobile-menu-btn {
+    display: inline-block !important;
+  }
+
+  .formal-sider {
+    display: none;
+  }
+
+  .formal-content {
+    padding: 16px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .layout-wrapper {
+    min-height: calc(100vh - 64px);
+  }
+}
+
+@media (max-width: 576px) {
+  .header-container {
+    padding: 0 8px;
+  }
+
+  .logo-text {
+    gap: 6px;
+  }
+
+  .logo-image {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-main-en {
+    font-size: 12px;
+  }
+
+  .logo-main-ar {
+    font-size: 11px;
+  }
+
+  .formal-content {
+    padding: 12px;
+  }
+
+  .header-icon-btn {
+    font-size: 16px;
+  }
+}
+
+/* ============================================================ */
+/* COMMON COMPONENT STYLES */
+/* ============================================================ */
+
+/* Card styling */
+.formal-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.formal-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Page header styling */
+.formal-page-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.formal-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f1f1f;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.formal-page-title-ar {
+  font-size: 24px;
+  color: #595959;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+/* Button styling */
+.formal-button {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  height: 40px;
+  line-height: 40px;
+}
+
+.formal-button.primary {
+  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  border: none;
+  color: white;
+}
+
+.formal-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+/* Form styling */
+.formal-form-item {
+  margin-bottom: 16px;
+}
+
+.formal-form-item label {
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.formal-form-item .ant-form-item-required::before {
+  color: #f5222d;
+}
+
+/* Alert styling */
+.formal-alert {
+  border-radius: 6px;
+  border-left: 4px solid;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.formal-alert.success {
+  border-left-color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.formal-alert.error {
+  border-left-color: #f5222d;
+  background-color: #fff1f0;
+}
+
+.formal-alert.warning {
+  border-left-color: #faad14;
+  background-color: #fffbe6;
+}
+
+.formal-alert.info {
+  border-left-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+/* Badge styling */
+.formal-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.formal-badge.pending {
+  background-color: #ffc069;
+  color: #7a3e00;
+}
+
+.formal-badge.approved {
+  background-color: #b7eb8f;
+  color: #274000;
+}
+
+.formal-badge.rejected {
+  background-color: #ffb6c1;
+  color: #5f0000;
+}
+
+.formal-badge.verified {
+  background-color: #87d068;
+  color: #274000;
+}
+
+/* Table styling */
+.formal-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.formal-table thead {
+  background-color: #fafafa;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.formal-table th {
+  font-weight: 700;
+  color: #1f1f1f;
+  padding: 12px;
+  text-align: left;
+}
+
+.formal-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.formal-table tbody tr:hover {
+  background-color: #fafafa;
+}
+
+/* Loading animation */
+.formal-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.formal-loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1890ff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* RTL Support for Arabic */
+[dir="rtl"] .logo-text-content {
+  text-align: right;
+}
+
+[dir="rtl"] .formal-page-title {
+  justify-content: flex-end;
+}
+
+[dir="rtl"] .formal-sider {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+[dir="rtl"] .formal-menu .ant-menu-item-selected {
+  border-right: none;
+  border-left: 4px solid #1890ff;
+}

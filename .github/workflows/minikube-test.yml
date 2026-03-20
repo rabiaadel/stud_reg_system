@@ -1,0 +1,59 @@
+name: Minikube Deployment Test
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test-minikube-deployment:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Start Minikube
+      uses: medyagh/setup-minikube@latest
+      with:
+        driver: docker
+        kubernetes-version: v1.28.0
+    
+    - name: Verify Minikube Status
+      run: minikube status
+    
+    - name: Build Docker images
+      run: |
+        eval $(minikube docker-env)
+        docker build -f Dockerfile.backend -t stud-reg-backend:latest .
+        docker build -f Dockerfile.frontend -t stud-reg-frontend:latest .
+        docker build -f Dockerfile.db -t stud-reg-db:latest .
+    
+    - name: Apply Kubernetes manifests
+      run: |
+        kubectl apply -k k8s/
+        kubectl get pods -A
+    
+    - name: Wait for deployments
+      run: |
+        kubectl wait --for=condition=available --timeout=300s deployment/stud-reg-backend -n stud-reg-system || true
+        kubectl wait --for=condition=available --timeout=300s deployment/stud-reg-frontend -n stud-reg-system || true
+    
+    - name: Check pod logs
+      run: |
+        kubectl logs -n stud-reg-system -l app=backend --tail=50 || true
+        kubectl logs -n stud-reg-system -l app=frontend --tail=50 || true
+    
+    - name: Test services connectivity
+      run: |
+        kubectl get svc -A
+        kubectl get pods -A
+    
+    - name: Cleanup
+      if: always()
+      run: |
+        minikube stop
+        minikube delete

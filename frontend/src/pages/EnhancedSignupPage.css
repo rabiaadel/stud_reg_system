@@ -1,0 +1,479 @@
+/* Enhanced Signup Page CSS */
+
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.signup-container.submitted {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 700px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: none;
+  overflow: hidden;
+}
+
+.signup-card .ant-card-body {
+  padding: 40px;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.signup-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f1f1f;
+  margin: 0 0 8px 0;
+}
+
+.signup-header .subtitle {
+  color: #8c8c8c;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.8;
+}
+
+/* User Type Selector */
+.user-type-selector {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.user-type-selector h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f1f1f;
+  margin-bottom: 16px;
+}
+
+.user-type-selector .ant-radio-group {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.radio-btn {
+  flex: 1;
+  height: auto;
+  padding: 16px !important;
+  border: 2px solid #d9d9d9 !important;
+  border-radius: 8px !important;
+  background: #fafafa !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio-btn:hover {
+  border-color: #1890ff !important;
+  background: #f0f5ff !important;
+}
+
+.radio-btn.ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-color: transparent !important;
+  color: white !important;
+}
+
+.radio-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.radio-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.radio-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radio-label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.radio-desc {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.radio-btn.ant-radio-button-wrapper-checked .radio-label,
+.radio-btn.ant-radio-button-wrapper-checked .radio-desc {
+  color: white;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.form-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f1f1f;
+  margin: 0 0 16px 0;
+  padding-top: 8px;
+}
+
+.signup-form {
+  margin-top: 24px;
+}
+
+.signup-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.signup-form .ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+  font-size: 14px;
+}
+
+.signup-form .ant-form-item-label .ant-form-item-required::before {
+  color: #f5222d !important;
+  content: '*' !important;
+  margin-right: 4px;
+}
+
+.signup-form .ant-input,
+.signup-form .ant-input-number,
+.signup-form .ant-picker,
+.signup-form .ant-select-selector {
+  border-radius: 6px;
+  border: 1.5px solid #d9d9d9;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.signup-form .ant-input:hover,
+.signup-form .ant-input-number:hover,
+.signup-form .ant-picker:hover,
+.signup-form .ant-select-selector:hover {
+  border-color: #1890ff !important;
+}
+
+.signup-form .ant-input:focus,
+.signup-form .ant-input-number:focus,
+.signup-form .ant-picker:focus,
+.signup-form .ant-select-selector:focus {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1) !important;
+}
+
+.signup-form .ant-input::placeholder {
+  color: #bfbfbf;
+}
+
+/* Submit Button */
+.signup-submit-btn {
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.signup-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.signup-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Login Link */
+.login-link {
+  text-align: center;
+  margin-top: 16px;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+.login-link a {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.login-link a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* Submission Success */
+.submission-success {
+  text-align: center;
+  padding: 40px;
+}
+
+.success-icon {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 16px;
+  animation: successBounce 0.6s ease-out;
+}
+
+@keyframes successBounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.submission-success h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f1f1f;
+  margin: 0 0 12px 0;
+}
+
+.submission-success p {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-bottom: 24px;
+}
+
+.submission-success .ant-alert {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.return-btn {
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  min-width: 120px;
+}
+
+.return-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .signup-card .ant-card-body {
+    padding: 24px;
+  }
+
+  .signup-header h1 {
+    font-size: 24px;
+  }
+
+  .signup-header .subtitle {
+    font-size: 13px;
+  }
+
+  .user-type-selector .ant-radio-group {
+    flex-direction: column;
+  }
+
+  .radio-btn {
+    flex: none;
+    width: 100%;
+  }
+
+  .form-section h3 {
+    font-size: 15px;
+  }
+
+  .submission-success {
+    padding: 24px;
+  }
+
+  .success-icon {
+    font-size: 48px;
+  }
+
+  .submission-success h2 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .signup-container {
+    padding: 12px;
+  }
+
+  .signup-card .ant-card-body {
+    padding: 16px;
+  }
+
+  .signup-header {
+    margin-bottom: 24px;
+  }
+
+  .signup-header h1 {
+    font-size: 20px;
+  }
+
+  .signup-header .subtitle {
+    font-size: 12px;
+  }
+
+  .user-type-selector {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .user-type-selector h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .radio-content {
+    gap: 6px;
+  }
+
+  .radio-icon {
+    font-size: 24px;
+  }
+
+  .radio-label {
+    font-size: 13px;
+  }
+
+  .radio-desc {
+    font-size: 11px;
+  }
+
+  .form-section {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+  }
+
+  .form-section h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .signup-submit-btn {
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .submission-success {
+    padding: 16px;
+  }
+
+  .success-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .submission-success h2 {
+    font-size: 18px;
+  }
+
+  .submission-success p {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .signup-card {
+    background: #141414;
+  }
+
+  .signup-header h1 {
+    color: #f5f5f5;
+  }
+
+  .signup-header .subtitle {
+    color: #a6a6a6;
+  }
+
+  .user-type-selector h3,
+  .form-section h3 {
+    color: #f5f5f5;
+  }
+
+  .form-section {
+    border-bottom-color: #434343;
+  }
+
+  .signup-form .ant-form-item-label > label {
+    color: #e0e0e0;
+  }
+
+  .signup-form .ant-input,
+  .signup-form .ant-input-number,
+  .signup-form .ant-picker,
+  .signup-form .ant-select-selector {
+    background: #262626 !important;
+    border-color: #434343 !important;
+    color: #f5f5f5 !important;
+  }
+
+  .radio-btn {
+    background: #262626 !important;
+    color: #f5f5f5;
+  }
+
+  .radio-btn:hover {
+    border-color: #667eea !important;
+    background: rgba(102, 126, 234, 0.1) !important;
+  }
+
+  .login-link {
+    color: #a6a6a6;
+  }
+
+  .submission-success h2 {
+    color: #f5f5f5;
+  }
+
+  .submission-success p {
+    color: #a6a6a6;
+  }
+}

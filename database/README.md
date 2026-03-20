@@ -31,6 +31,7 @@ The database consists of 25+ tables organized into the following categories:
 ### Administrative Features
 - **Academic Rules**: Configurable business rules
 - **Registration Constraints**: Enrollment limitations
+- **Account Requests**: Admin approval workflow for doctor/student sign-ups
 - **Audit Logs**: System activity tracking
 - **Notifications**: Student communication
 
@@ -47,9 +48,9 @@ The database consists of 25+ tables organized into the following categories:
 CREATE DATABASE student_registration_system;
 ```
 
-2. Connect to the database and run the schema:
+2. Apply schema, enhancements, and seed users in one go:
 ```bash
-psql -d student_registration_system -f schema.sql
+psql -d student_registration_system -f apply_all.sql
 ```
 
 ### Environment Variables
@@ -90,9 +91,14 @@ DB_PASSWORD=your_db_password
 Sample data seeding scripts are available in the `seeds/` directory:
 
 - University and faculty setup
-- Course catalog
-- Academic rules configuration
+- Course catalog and specialization requirements
+- Academic rules configuration (bylaws import)
 - Sample student data
+
+To regenerate the Tanta bylaws seed file from `db-extracted/`, run:
+```bash
+powershell -ExecutionPolicy Bypass -File seeds/generate_tanta_bylaws_seed.ps1
+```
 
 ## Backup and Recovery
 

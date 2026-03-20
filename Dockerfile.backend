@@ -1,0 +1,60 @@
+# Multi-stage Dockerfile for Backend (Node.js API)
+# Stage 1: Builder
+FROM node:20-alpine AS builder
+
+# Set working directory first
+WORKDIR /app
+
+# Copy only package files to leverage Docker layer caching
+COPY backend/package*.json ./
+
+# Install dependencies (production + dev for better node_modules)
+RUN npm ci && \
+    npm cache clean --force
+
+# Stage 2: Runtime
+FROM node:20-alpine
+
+LABEL maintainer="DevOps Team"
+LABEL version="1.0"
+LABEL description="Student Registration System - Backend API"
+
+# Set environment variables early as they rarely change
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=512" \
+    PORT=3000
+
+# Install netcat for health checks in entrypoint
+RUN apk add --no-cache netcat-openbsd bash
+
+# Set working directory
+WORKDIR /app
+
+# Add non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copy node_modules from builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+
+# Copy application source code (changes frequently, goes last)
+COPY --chown=nodejs:nodejs backend/ ./
+
+# Create logs directory with proper permissions
+RUN mkdir -p logs && chown -R nodejs:nodejs logs
+
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
+
+# Switch to non-root user before listening/running
+USER nodejs
+
+# Expose port
+EXPOSE 3000
+
+# Health check setup
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3000) + '/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Use entrypoint script for controlled startup
+ENTRYPOINT ["/app/entrypoint.sh"]

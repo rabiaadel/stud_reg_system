@@ -30,10 +30,12 @@ class StudentController {
           s.dismissal_reason,
           s.is_active,
           f.name_en as faculty_name,
-          sp.name_en as specialization_name
+          sp.name_en as specialization_name,
+          d.name_en as department_name
         FROM students s
         LEFT JOIN faculties f ON s.faculty_id = f.id
         LEFT JOIN specializations sp ON s.specialization_id = sp.id
+        LEFT JOIN departments d ON sp.department_id = d.id
         WHERE s.id = $1
       `;
 
@@ -196,6 +198,13 @@ class StudentController {
                          student.is_active &&
                          (!deadline || new Date() <= new Date(deadline.deadline_date));
 
+      let reason = null;
+      if (!canRegister) {
+        if (student.is_dismissed) reason = 'Student is dismissed';
+        else if (!student.is_active) reason = 'Student account is inactive';
+        else if (deadline && new Date() > new Date(deadline.deadline_date)) reason = 'Registration deadline has passed';
+      }
+
       res.json({
         success: true,
         data: {
@@ -209,6 +218,11 @@ class StudentController {
           is_on_warning: student.is_on_warning,
           is_dismissed: student.is_dismissed,
           can_register: canRegister,
+          is_eligible: canRegister,
+          current_gpa: student.cgpa,
+          credits_completed: student.total_credits_passed,
+          max_credits_available: constraints?.max_credits || null,
+          reason,
           registration_constraints: constraints ? {
             min_credits: constraints.min_credits,
             max_credits: constraints.max_credits,
@@ -791,7 +805,9 @@ class StudentController {
           s.cgpa,
           s.current_level,
           s.total_credits_passed,
-          COUNT(CASE WHEN sg.grade_letter = 'F' THEN 1 END) as failed_courses_count
+          s.is_active,
+          COUNT(CASE WHEN sg.grade_letter = 'F' THEN 1 END) as failed_courses_count,
+          COUNT(CASE WHEN sg.grade_points >= 1.0 THEN 1 END) as passed_courses_count
         FROM student_academic_standing sas
         JOIN students s ON sas.student_id = s.id
         LEFT JOIN student_grades sg ON s.id = sg.student_id AND sg.is_first_attempt = true
@@ -825,6 +841,7 @@ class StudentController {
           gpa_this_semester: standing.gpa,
           cgpa: standing.cgpa,
           status: standing.is_dismissed ? 'Dismissed' : (standing.is_on_warning ? 'Warning' : 'Active'),
+          warning_issued: standing.is_on_warning,
           is_on_warning: standing.is_on_warning,
           warning_count: {
             consecutive: standing.consecutive_warning_count,
@@ -834,6 +851,11 @@ class StudentController {
           is_on_probation: standing.is_on_probation,
           is_honors_eligible: standing.is_honors_eligible,
           academic_classification: classification,
+          total_credits_earned: standing.total_credits_passed,
+          courses_passed: parseInt(standing.passed_courses_count || 0),
+          academic_level: standing.current_level,
+          enrollment_status: standing.is_active ? 'active' : 'inactive',
+          last_updated: standing.updated_at,
           details: {
             min_cgpa_for_honors: 3.0,
             no_failed_courses: standing.failed_courses_count === 0,
@@ -1039,40 +1061,137 @@ class StudentController {
     try {
       const { studentId } = req.params;
 
-      const query = `
+      const studentResult = await pool.query(
+        `
+        SELECT s.id, s.cgpa, s.faculty_id, s.specialization_id, sp.total_credits
+        FROM students s
+        LEFT JOIN specializations sp ON s.specialization_id = sp.id
+        WHERE s.id = $1
+        `,
+        [studentId]
+      );
+
+      if (studentResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found',
+        });
+      }
+
+      const student = studentResult.rows[0];
+      const totalCreditsRequired = student.total_credits || 132;
+
+      const progressResult = await pool.query(
+        `
         SELECT * FROM student_progress_tracking
         WHERE student_id = $1
         ORDER BY created_at DESC
         LIMIT 1
-      `;
+        `,
+        [studentId]
+      );
+      const progress = progressResult.rows[0] || null;
 
-      const result = await pool.query(query, [studentId]);
+      const semesterResult = await pool.query(
+        `
+        SELECT id, semester_name, academic_year
+        FROM semesters
+        WHERE faculty_id = $1 AND is_active = true
+        ORDER BY start_date DESC
+        LIMIT 1
+        `,
+        [student.faculty_id]
+      );
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Progress tracking not found',
-        });
+      let activeSemester = semesterResult.rows[0] || null;
+      if (!activeSemester) {
+        const fallbackSemester = await pool.query(
+          `
+          SELECT s.id, s.semester_name, s.academic_year
+          FROM student_registrations sr
+          JOIN semesters s ON sr.semester_id = s.id
+          WHERE sr.student_id = $1
+          ORDER BY sr.created_at DESC
+          LIMIT 1
+          `,
+          [studentId]
+        );
+        activeSemester = fallbackSemester.rows[0] || null;
       }
 
-      const progress = result.rows[0];
+      const creditsResult = await pool.query(
+        `
+        SELECT
+          COALESCE(SUM(c.credit_hours), 0) AS credits_earned,
+          COUNT(*) FILTER (WHERE sg.grade_points >= 1.0) AS courses_passed
+        FROM student_grades sg
+        JOIN courses c ON sg.course_id = c.id
+        WHERE sg.student_id = $1 AND sg.grade_points >= 1.0 AND sg.is_first_attempt = true
+        `,
+        [studentId]
+      );
+
+      const cgpaResult = await pool.query(
+        `
+        SELECT COALESCE(AVG(sg.grade_points), 0) AS cgpa
+        FROM student_grades sg
+        WHERE sg.student_id = $1 AND sg.is_first_attempt = true
+        `,
+        [studentId]
+      );
+
+      const creditsEarned = parseInt(creditsResult.rows[0]?.credits_earned || 0, 10);
+      const coursesPassed = parseInt(creditsResult.rows[0]?.courses_passed || 0, 10);
+      const cgpa = parseFloat(cgpaResult.rows[0]?.cgpa || student.cgpa || 0);
+
+      const registrationsResult = activeSemester
+        ? await pool.query(
+          `
+          SELECT
+            COUNT(*) AS courses_registered,
+            COALESCE(SUM(c.credit_hours), 0) AS credits_registered
+          FROM student_registrations sr
+          JOIN courses c ON sr.course_id = c.id
+          WHERE sr.student_id = $1 AND sr.semester_id = $2 AND sr.status = 'Registered'
+          `,
+          [studentId, activeSemester.id]
+        )
+        : { rows: [{ courses_registered: 0, credits_registered: 0 }] };
+
+      const coursesRegistered = parseInt(registrationsResult.rows[0]?.courses_registered || 0, 10);
+      const creditsRegistered = parseInt(registrationsResult.rows[0]?.credits_registered || 0, 10);
+
+      const totalCreditsEarned = creditsEarned;
+      const creditsPassed = creditsEarned;
+      const progressPercentage = totalCreditsRequired > 0
+        ? Math.min(100, Math.round((totalCreditsEarned / totalCreditsRequired) * 100))
+        : 0;
+
+      const graduationResult = await pool.query(
+        'SELECT estimated_graduation_date FROM graduation_eligibility WHERE student_id = $1',
+        [studentId]
+      );
+      const estimatedGraduationDate = graduationResult.rows[0]?.estimated_graduation_date || null;
 
       res.json({
         success: true,
         data: {
           student_id: studentId,
-          progress_percentage: progress.cgpa * 100 / 4, // Assuming 4.0 scale
-          current_semester: progress.semester_id,
+          progress_percentage: progressPercentage,
+          current_semester: activeSemester?.id || progress?.semester_id || null,
+          total_credits_earned: totalCreditsEarned,
+          total_credits_required: totalCreditsRequired,
           semester_progress: {
-            courses_registered: progress.total_courses_registered,
-            credits_registered: progress.total_credits_registered,
-            courses_passed: progress.courses_passed,
-            credits_passed: progress.credits_passed,
-            total_credits_required: 132, // From bylaws
-            total_credits_accumulated: progress.total_credits_accumulated
+            courses_registered: coursesRegistered,
+            credits_registered: creditsRegistered,
+            courses_passed: coursesPassed,
+            credits_passed: creditsPassed,
+            total_credits_required: totalCreditsRequired,
+            total_credits_accumulated: totalCreditsEarned
           },
-          academic_standing: progress.cgpa >= 2.0 ? 'Good Standing' : 'Academic Warning',
-          cgpa: progress.cgpa
+          academic_standing: cgpa >= 2.0 ? 'Good Standing' : 'Academic Warning',
+          cgpa,
+          estimated_graduation_date: estimatedGraduationDate
         }
       });
     } catch (error) {

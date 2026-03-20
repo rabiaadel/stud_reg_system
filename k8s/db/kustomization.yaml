@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: postgres
+
+namespace: stud-reg-db
+
+commonLabels:
+  app: postgres
+  component: database
+
+resources:
+  - configmap.yaml
+  - init-configmap.yaml
+  - secret.yaml
+  - pvc.yaml
+  - statefulset.yaml
+  - service.yaml
+
+generatorOptions:
+  disableNameSuffixHash: false
+
+secretGenerator:
+- name: postgres-secret
+  behavior: merge
+  envs:
+  - secret.env
+
+replicas:
+- name: postgres
+  count: 1
+
+vars:
+- name: POSTGRES_USER
+  objref:
+    kind: Secret
+    name: postgres-secret
+    apiVersion: v1
+  fieldref:
+    fieldpath: data.POSTGRES_USER

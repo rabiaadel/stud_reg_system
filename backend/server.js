@@ -4,36 +4,20 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const fileUpload = require('express-fileupload');
-const winston = require('winston');
+const client = require('prom-client');
 
 const { pool } = require('./config/database');
+const { server: serverConfig } = require('./config/config');
 const routes = require('./routes');
 const { errorHandler } = require('./middleware/errorHandler');
 const { notFound } = require('./middleware/notFound');
+const { requestContext } = require('./middleware/requestContext');
+const { logger } = require('./config/logger');
+
+const allowedOrigins = serverConfig.corsOrigins;
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Logger configuration
-const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  defaultMeta: { service: 'student-registration-api' },
-  transports: [
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
-  ],
-});
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
-}
+const PORT = serverConfig.port;
 
 // Security middleware
 app.use(helmet({
@@ -47,10 +31,32 @@ app.use(helmet({
   },
 }));
 
+// Prometheus metrics
+client.collectDefaultMetrics();
+const httpRequestDuration = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.1, 0.3, 1.5, 5, 10],
+});
+
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  } catch (err) {
+    (req.logger || logger).error('Metrics error', err);
+    res.status(500).end();
+  }
+});
+
+// Request context (request id + per-request logger)
+app.use(requestContext);
+
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
+  windowMs: serverConfig.rateLimitWindowMinutes * 60 * 1000,
+  max: serverConfig.rateLimitMax,
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.',
@@ -62,10 +68,21 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-}));
+// CORS: echo request origin and allow credentials
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+  }
+  next();
+});
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -82,21 +99,38 @@ app.use(compression());
 
 // Request logging middleware
 app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.url}`, {
+  const log = req.logger || logger;
+  const end = httpRequestDuration.startTimer();
+  log.info('Incoming request', {
     ip: req.ip,
     userAgent: req.get('User-Agent'),
+  });
+  res.on('finish', () => {
+    const route = req.route?.path || req.originalUrl || 'unknown_route';
+    end({ method: req.method, route, status_code: res.statusCode });
   });
   next();
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API is healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
+  pool.query('SELECT 1')
+    .then(() => {
+      res.json({
+        success: true,
+        message: 'API is healthy',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        db: 'ok',
+      });
+    })
+    .catch(() => {
+      res.status(503).json({
+        success: false,
+        message: 'Database unreachable',
+        timestamp: new Date().toISOString(),
+      });
+    });
 });
 
 // API routes
@@ -108,20 +142,26 @@ app.use(notFound);
 // Error handling middleware
 app.use(errorHandler);
 
-// Database connection test
-pool.connect((err, client, release) => {
-  if (err) {
-    logger.error('Error connecting to database:', err);
-    process.exit(1);
+const waitForDatabase = async (retries = 20, delayMs = 2000) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await pool.query('SELECT 1');
+      logger.info('Connected to PostgreSQL database');
+      return;
+    } catch (err) {
+      logger.warn(`DB not ready (attempt ${attempt}/${retries}): ${err.message}`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
   }
-  logger.info('Connected to PostgreSQL database');
-  release();
-});
+  logger.error('Database did not become ready in time');
+  process.exit(1);
+};
 
-// Start server
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+waitForDatabase().then(() => {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+    logger.info(`Environment: ${serverConfig.env}`);
+  });
 });
 
 // Graceful shutdown

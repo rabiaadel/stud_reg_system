@@ -1,36 +1,30 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, message, Spin } from 'antd';
+import { Form, Input, Button, message, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store';
-import { authService } from '../services/api';
+import { APP_NAME_AR, APP_NAME_EN } from '../config/appMeta';
 
 export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const setUser = useAuthStore((state) => state.setUser);
+  const login = useAuthStore((state) => state.login);
 
   const handleLogin = async (values) => {
     setLoading(true);
     try {
-      const response = await authService.login(values.email, values.password);
-      
-      if (response.token) {
-        authService.setToken(response.token);
-        
-        // Decode token to get user data
-        const user = authService.getCurrentUser();
-        setUser(user);
-        
-        message.success('Login successful!');
-        
-        // Navigate based on role
-        if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+      const response = await login(values.email, values.password);
+      const user = response?.user || useAuthStore.getState().user;
+
+      message.success('Login successful!');
+
+      if (user?.role === 'admin') {
+        navigate('/admin');
+      } else if (user?.role === 'doctor') {
+        navigate('/doctor');
+      } else {
+        navigate('/dashboard');
       }
     } catch (error) {
       message.error(error.response?.data?.message || 'Login failed');
@@ -40,70 +34,77 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-      <Spin spinning={loading}>
-        <Card className="w-full max-w-md shadow-2xl">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">Student Registration</h1>
-            <p className="text-gray-500 mt-2">University Management System</p>
+    <div className="auth-shell">
+      <Spin spinning={loading} className="w-full max-w-md">
+        <div className="auth-card">
+          <div className="auth-header">
+            <div className="auth-mark">حاسب</div>
+            <div>
+              <div className="auth-title">{APP_NAME_AR}</div>
+              <div className="auth-subtitle">{APP_NAME_EN}</div>
+            </div>
           </div>
 
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleLogin}
-            autoComplete="off"
-          >
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[
-                { required: true, message: 'Please input your email!' },
-                { type: 'email', message: 'Please enter a valid email!' }
-              ]}
-            >
-              <Input
-                prefix={<UserOutlined />}
-                placeholder="Enter your email"
-                size="large"
-                disabled={loading}
-              />
-            </Form.Item>
+          <div className="auth-body">
+            <h2 className="auth-heading">Sign In</h2>
+            <p className="auth-muted">Use your approved account to access the portal.</p>
 
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[
-                { required: true, message: 'Please input your password!' }
-              ]}
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleLogin}
+              autoComplete="off"
             >
-              <Input.Password
-                prefix={<LockOutlined />}
-                placeholder="Enter your password"
-                size="large"
-                disabled={loading}
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                size="large"
-                className="w-full"
-                loading={loading}
+              <Form.Item
+                name="email"
+                label="Email Address"
+                rules={[
+                  { required: true, message: 'Please input your email!' },
+                  { type: 'email', message: 'Please enter a valid email!' }
+                ]}
               >
-                Login
-              </Button>
-            </Form.Item>
-          </Form>
+                <Input
+                  prefix={<UserOutlined className="text-primary" />}
+                  placeholder="student@university.edu"
+                  size="large"
+                  disabled={loading}
+                />
+              </Form.Item>
 
-          <div className="text-center text-gray-600 text-sm">
-            <p>Demo Credentials:</p>
-            <p>Email: student@university.edu</p>
-            <p>Password: password123</p>
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[
+                  { required: true, message: 'Please input your password!' }
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="text-primary" />}
+                  placeholder="••••••••"
+                  size="large"
+                  disabled={loading}
+                />
+              </Form.Item>
+
+              <Form.Item className="mt-6">
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  size="large"
+                  className="w-full"
+                  loading={loading}
+                >
+                  Sign In
+                </Button>
+              </Form.Item>
+            </Form>
+
+            <div className="auth-footer">
+              <span className="text-sm text-gray-500">New here?</span>
+              <Link to="/signup" className="auth-link">Create an account</Link>
+            </div>
           </div>
-        </Card>
+        </div>
       </Spin>
     </div>
   );

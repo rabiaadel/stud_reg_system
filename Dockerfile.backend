@@ -15,9 +15,9 @@ RUN npm ci && \
 # Stage 2: Runtime
 FROM node:20-alpine
 
-LABEL maintainer="DevOps Team"
+LABEL maintainer="Rabia Adel <"
 LABEL version="1.0"
-LABEL description="Student Registration System - Backend API"
+LABEL description="FCITU_Student Registration System - Backend API"
 
 # Set environment variables early as they rarely change
 ENV NODE_ENV=production \
